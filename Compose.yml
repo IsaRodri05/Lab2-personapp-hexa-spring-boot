@@ -1,0 +1,46 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mi-spring-boot-app:latest
+    container_name: spring_app
+    ports:
+      - "8080:8080"
+    environment:
+      # Configuración de MongoDB
+      SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/mi_basedatos_mongo
+      # Configuración de MariaDB
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/mi_basedatos_sql
+      SPRING_DATASOURCE_USERNAME: usuario_sql
+      SPRING_DATASOURCE_PASSWORD: password_sql
+
+      SPRING_PROFILES_ACTIVE: prod
+    depends_on:
+      - mongo
+      - mariadb
+
+  mongo:
+    image: mongo:5.0
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  mariadb:
+    image: mariadb:10.5
+    container_name: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: mi_basedatos_sql
+      MYSQL_USER: usuario_sql
+      MYSQL_PASSWORD: password_sql
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb-data:/var/lib/mysql
+
+volumes:
+  mongo-data:
+  mariadb-data:
