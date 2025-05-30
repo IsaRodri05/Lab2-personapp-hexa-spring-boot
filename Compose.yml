@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   app:
     build:
@@ -8,26 +10,36 @@ services:
     ports:
       - "8080:8080"
     environment:
-      # Configuración de MongoDB
-      SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/mi_basedatos_mongo
-      # Configuración de MariaDB
-      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/persona_db 
+      # MongoDB Configuration
+      SPRING_DATA_MONGODB_URI: mongodb://persona_db:persona_db@mongo:27017/persona_db?authSource=admin
+      # MariaDB Configuration
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/persona_db
       SPRING_DATASOURCE_USERNAME: persona_db
       SPRING_DATASOURCE_PASSWORD: persona_db
-
       SPRING_PROFILES_ACTIVE: prod
     depends_on:
-      - mongo
-      - mariadb
+      mongo:
+        condition: service_healthy
+      mariadb:
+        condition: service_healthy
 
   mongo:
-    build:
-      context: ./scripts/mongo
+    image: mongo:latest
     container_name: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+      MONGO_INITDB_DATABASE: persona_db
     ports:
       - "27017:27017"
     volumes:
       - mongo-data:/data/db
+      - ./scripts/mongo:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 30s
+      retries: 5
 
   mariadb:
     image: mariadb:10.5
@@ -42,8 +54,14 @@ services:
     volumes:
       - mariadb-data:/var/lib/mysql
       - ./scripts/mariadb:/docker-entrypoint-initdb.d
-
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
 
 volumes:
   mongo-data:
+    driver: local
   mariadb-data:
+    driver: local
