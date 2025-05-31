@@ -26,7 +26,7 @@
 			<groupId>co.edu.javeriana.as.personapp</groupId>
 			<artifactId>mongo-output-adapter</artifactId>
 			<version>${revision}</version>
-		</dependency>		
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
@@ -53,6 +53,23 @@
 					</excludes>
 				</configuration>
 			</plugin>
+
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>${global.springframework.boot.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal> <!-- Esto genera el JAR ejecutable -->
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<mainClass>co.edu.javeriana.as.personapp.PersonAppRestApi</mainClass> 
+				</configuration>
+			</plugin>
+
 		</plugins>
 	</build>
 </project>

@@ -1,5 +1,6 @@
 package co.edu.javeriana.as.personapp.model.request;
 
+import co.edu.javeriana.as.personapp.domain.Gender;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

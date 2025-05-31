@@ -19,73 +19,77 @@ import lombok.NonNull;
 @Mapper
 public class PersonaMapperMaria {
 
-	@Autowired
-	private EstudiosMapperMaria estudiosMapperMaria;
+    @Autowired
+    private EstudiosMapperMaria estudiosMapperMaria;
 
-	@Autowired
-	private TelefonoMapperMaria telefonoMapperMaria;
+    @Autowired
+    private TelefonoMapperMaria telefonoMapperMaria;
 
-	public PersonaEntity fromDomainToAdapter(Person person) {
-		PersonaEntity personaEntity = new PersonaEntity();
-		personaEntity.setCc(person.getIdentification());
-		personaEntity.setNombre(person.getFirstName());
-		personaEntity.setApellido(person.getLastName());
-		personaEntity.setGenero(validateGenero(person.getGender()));
-		personaEntity.setEdad(validateEdad(person.getAge()));
-		personaEntity.setEstudios(validateEstudios(person.getStudies()));
-		personaEntity.setTelefonos(validateTelefonos(person.getPhoneNumbers()));
-		return personaEntity;
-	}
+    public PersonaEntity fromDomainToAdapter(Person person) {
+        if (person == null) {
+            throw new IllegalArgumentException("Person cannot be null");
+        }
 
-	private Character validateGenero(@NonNull Gender gender) {
-		return gender == Gender.FEMALE ? 'F' : gender == Gender.MALE ? 'M' : ' ';
-	}
+        PersonaEntity personaEntity = new PersonaEntity();
+        personaEntity.setCc(person.getIdentification());
+        personaEntity.setNombre(person.getFirstName());
+        personaEntity.setApellido(person.getLastName());
+        personaEntity.setGenero(Gender.toCharDbValue(person.getGender()));
+        personaEntity.setEdad(validateEdad(person.getAge()));
+        personaEntity.setEstudios(mapStudiesToEntities(person.getStudies()));
+        personaEntity.setTelefonos(mapPhonesToEntities(person.getPhoneNumbers()));
+        return personaEntity;
+    }
 
-	private Integer validateEdad(Integer age) {
-		return age != null && age >= 0 ? age : null;
-	}
+    public Person fromAdapterToDomain(PersonaEntity personaEntity) {
+        if (personaEntity == null) {
+            throw new IllegalArgumentException("PersonaEntity cannot be null");
+        }
 
-	private List<EstudiosEntity> validateEstudios(List<Study> studies) {
-		return studies != null && !studies.isEmpty()
-				? studies.stream().map(study -> estudiosMapperMaria.fromDomainToAdapter(study)).collect(Collectors.toList())
-				: new ArrayList<EstudiosEntity>();
-	}
+        Person person = new Person();
+        person.setIdentification(personaEntity.getCc());
+        person.setFirstName(personaEntity.getNombre());
+        person.setLastName(personaEntity.getApellido());
+        person.setGender(String.valueOf(personaEntity.getGenero()));
+        person.setAge(personaEntity.getEdad());
+        person.setStudies(mapEntitiesToStudies(personaEntity.getEstudios()));
+        person.setPhoneNumbers(mapEntitiesToPhones(personaEntity.getTelefonos()));
+        return person;
+    }
 
-	private List<TelefonoEntity> validateTelefonos(List<Phone> phoneNumbers) {
-		return phoneNumbers != null && !phoneNumbers.isEmpty() ? phoneNumbers.stream()
-				.map(phone -> telefonoMapperMaria.fromDomainToAdapter(phone)).collect(Collectors.toList())
-				: new ArrayList<TelefonoEntity>();
-	}
+    private Integer validateEdad(Integer age) {
+        return age != null && age >= 0 ? age : null;
+    }
 
-	public Person fromAdapterToDomain(PersonaEntity personaEntity) {
-		Person person = new Person();
-		person.setIdentification(personaEntity.getCc());
-		person.setFirstName(personaEntity.getNombre());
-		person.setLastName(personaEntity.getApellido());
-		person.setGender(validateGender(personaEntity.getGenero()));
-		person.setAge(validateAge(personaEntity.getEdad()));
-		person.setStudies(validateStudies(personaEntity.getEstudios()));
-		person.setPhoneNumbers(validatePhones(personaEntity.getTelefonos()));
-		return person;
-	}
+    private List<EstudiosEntity> mapStudiesToEntities(List<Study> studies) {
+        return studies != null ? 
+            studies.stream()
+                .map(estudiosMapperMaria::fromDomainToAdapter)
+                .collect(Collectors.toList()) : 
+            new ArrayList<>();
+    }
 
-	private @NonNull Gender validateGender(Character genero) {
-		return genero == 'F' ? Gender.FEMALE : genero == 'M' ? Gender.MALE : Gender.OTHER;
-	}
+    private List<TelefonoEntity> mapPhonesToEntities(List<Phone> phones) {
+        return phones != null ? 
+            phones.stream()
+                .map(telefonoMapperMaria::fromDomainToAdapter)
+                .collect(Collectors.toList()) : 
+            new ArrayList<>();
+    }
 
-	private Integer validateAge(Integer edad) {
-		return edad != null && edad >= 0 ? edad : null;
-	}
+    private List<Study> mapEntitiesToStudies(List<EstudiosEntity> estudiosEntities) {
+        return estudiosEntities != null ? 
+            estudiosEntities.stream()
+                .map(estudiosMapperMaria::fromAdapterToDomain)
+                .collect(Collectors.toList()) : 
+            new ArrayList<>();
+    }
 
-	private List<Study> validateStudies(List<EstudiosEntity> estudiosEntity) {
-		return estudiosEntity != null && !estudiosEntity.isEmpty() ? estudiosEntity.stream()
-				.map(estudio -> estudiosMapperMaria.fromAdapterToDomain(estudio)).collect(Collectors.toList())
-				: new ArrayList<Study>();
-	}
-
-	private List<Phone> validatePhones(List<TelefonoEntity> telefonoEntities) {
-		return telefonoEntities != null && !telefonoEntities.isEmpty() ? telefonoEntities.stream()
-				.map(telefono -> telefonoMapperMaria.fromAdapterToDomain(telefono)).collect(Collectors.toList())
-				: new ArrayList<Phone>();
-	}
+    private List<Phone> mapEntitiesToPhones(List<TelefonoEntity> telefonoEntities) {
+        return telefonoEntities != null ? 
+            telefonoEntities.stream()
+                .map(telefonoMapperMaria::fromAdapterToDomain)
+                .collect(Collectors.toList()) : 
+            new ArrayList<>();
+    }
 }

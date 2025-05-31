@@ -1,4 +1,4 @@
-use prueba_db
+db = db.getSiblingDB("prueba_db");
 
 db.persona.insertMany([
 	{
