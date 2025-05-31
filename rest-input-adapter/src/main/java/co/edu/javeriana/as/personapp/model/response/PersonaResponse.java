@@ -19,8 +19,4 @@ public class PersonaResponse extends PersonaRequest{
 		this.status = status;
 	}
 
-	
-	
-	
-
 }

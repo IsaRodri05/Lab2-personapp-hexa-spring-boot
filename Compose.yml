@@ -8,7 +8,7 @@ services:
     image: mi-spring-boot-app:latest
     container_name: spring_app
     ports:
-      - "8080:8080"
+      - "3000:3000"
     environment:
       # MongoDB Configuration
       SPRING_DATA_MONGODB_URI: mongodb://persona_db:persona_db@mongo:27017/persona_db?authSource=admin
