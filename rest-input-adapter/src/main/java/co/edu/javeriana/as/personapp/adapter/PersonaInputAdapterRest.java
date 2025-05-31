@@ -1,5 +1,6 @@
 package co.edu.javeriana.as.personapp.adapter;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,6 +18,7 @@ import co.edu.javeriana.as.personapp.domain.Person;
 import co.edu.javeriana.as.personapp.mapper.PersonaMapperRest;
 import co.edu.javeriana.as.personapp.model.request.PersonaRequest;
 import co.edu.javeriana.as.personapp.model.response.PersonaResponse;
+import co.edu.javeriana.as.personapp.model.response.Response;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -91,6 +93,77 @@ public class PersonaInputAdapterRest {
 			return new PersonaResponse(
 					request.getDni(), request.getFirstName(), request.getLastName(),
 					request.getAge(), request.getSex(), request.getDatabase(), "Server error");
+		}
+	}
+
+	public PersonaResponse editarPersona(PersonaRequest request) {
+		try {
+			String dbOption = setPersonOutputPortInjection(request.getDatabase());
+			Person person = personaMapperRest.fromAdapterToDomain(request);
+
+			// Verificar si la persona existe
+			Person existingPerson = personInputPort.findOne(Integer.parseInt(request.getDni()));
+			if (existingPerson == null) {
+				return new PersonaResponse(
+						request.getDni(), request.getFirstName(), request.getLastName(),
+						request.getAge(), request.getSex(), request.getDatabase(),
+						"Person not found");
+			}
+
+			// Actualizar la persona
+			Person updatedPerson = personInputPort.edit(Integer.parseInt(request.getDni()), person);
+
+			// Mapear la respuesta dependiendo de la base de datos usada
+			if (dbOption.equalsIgnoreCase(DatabaseOption.MARIA.toString())) {
+				return personaMapperRest.fromDomainToAdapterRestMaria(updatedPerson);
+			} else {
+				return personaMapperRest.fromDomainToAdapterRestMongo(updatedPerson);
+			}
+		} catch (InvalidOptionException e) {
+			log.error("Invalid database option: {}", e.getMessage());
+			return new PersonaResponse(
+					request.getDni(), request.getFirstName(), request.getLastName(),
+					request.getAge(), request.getSex(), request.getDatabase(), "Invalid database option");
+		} catch (NumberFormatException e) {
+			log.error("Invalid DNI format: {}", e.getMessage());
+			return new PersonaResponse(
+					request.getDni(), request.getFirstName(), request.getLastName(),
+					request.getAge(), request.getSex(), request.getDatabase(), "Invalid DNI format");
+		} catch (Exception e) {
+			log.error("Unexpected error: {}", e.getMessage());
+			return new PersonaResponse(
+					request.getDni(), request.getFirstName(), request.getLastName(),
+					request.getAge(), request.getSex(), request.getDatabase(), "Server error");
+		}
+	}
+
+	public Response eliminarPersona(String database, String dni) {
+		try {
+			setPersonOutputPortInjection(database);
+			int id = Integer.parseInt(dni);
+
+			// Verificar si la persona existe
+			Person existingPerson = personInputPort.findOne(id);
+			if (existingPerson == null) {
+				return new Response("NOT_FOUND", "Person with DNI " + dni + " not found", LocalDateTime.now());
+			}
+
+			// Eliminar la persona
+			boolean deleted = personInputPort.drop(id);
+			if (deleted) {
+				return new Response("SUCCESS", "Person with DNI " + dni + " deleted successfully", LocalDateTime.now());
+			} else {
+				return new Response("ERROR", "Failed to delete person with DNI " + dni, LocalDateTime.now());
+			}
+		} catch (InvalidOptionException e) {
+			log.error("Invalid database option: {}", e.getMessage());
+			return new Response("ERROR", "Invalid database option: " + database, LocalDateTime.now());
+		} catch (NumberFormatException e) {
+			log.error("Invalid DNI format: {}", e.getMessage());
+			return new Response("ERROR", "Invalid DNI format: " + dni, LocalDateTime.now());
+		} catch (Exception e) {
+			log.error("Unexpected error: {}", e.getMessage());
+			return new Response("ERROR", "Server error while deleting person", LocalDateTime.now());
 		}
 	}
 
