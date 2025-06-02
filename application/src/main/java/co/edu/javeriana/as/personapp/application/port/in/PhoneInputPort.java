@@ -13,7 +13,7 @@ import co.edu.javeriana.as.personapp.domain.Phone;
 public interface PhoneInputPort {
     public void setPersintence(PhoneOutputPort phonePersintence, PersonOutputPort personPersintence);
 	
-	public Phone create(Phone phone);
+	public Phone create(Phone phone) throws NoExistException;
 
 	public Phone edit(String  number, Phone phone) throws NoExistException;
 

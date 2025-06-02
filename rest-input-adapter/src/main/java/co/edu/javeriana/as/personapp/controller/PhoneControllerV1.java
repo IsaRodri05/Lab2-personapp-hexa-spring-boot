@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import co.edu.javeriana.as.personapp.adapter.PhoneInputAdapterRest;
+import co.edu.javeriana.as.personapp.model.request.EditPhoneRequest;
 import co.edu.javeriana.as.personapp.model.request.PhoneRequest;
 import co.edu.javeriana.as.personapp.model.response.PhoneResponse;
 import co.edu.javeriana.as.personapp.model.response.Response;
@@ -44,7 +45,7 @@ public class PhoneControllerV1 {
 
     @PutMapping(path = "/{number}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public PhoneResponse editPhone(@PathVariable String number, @RequestBody PhoneRequest request) {
+    public PhoneResponse editPhone(@PathVariable String number, @RequestBody EditPhoneRequest request) {
         log.info("Into editPhone REST API for number {}", number);
         return phoneInputAdapterRest.editarTelefono(number, request);
     }

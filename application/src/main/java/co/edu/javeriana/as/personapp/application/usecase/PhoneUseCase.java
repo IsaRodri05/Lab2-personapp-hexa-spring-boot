@@ -36,9 +36,13 @@ public class PhoneUseCase implements PhoneInputPort {
     }
 
     @Override
-    public Phone create(Phone phone) {
+    public Phone create(Phone phone) throws NoExistException {
         log.debug("Into create on Application Domain");
-        return phonePersistence.save(phone);
+        if(personPersistence.findById(phone.getOwner().getIdentification()) != null) {
+            return phonePersistence.save(phone);
+        }
+        log.error("The owner of the phone does not exist in the database");
+        throw new NoExistException("The owner of the phone does not exist in the database");
     }
 
     @Override

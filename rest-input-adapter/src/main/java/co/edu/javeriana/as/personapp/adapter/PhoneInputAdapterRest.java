@@ -24,6 +24,7 @@ import co.edu.javeriana.as.personapp.domain.Person;
 import co.edu.javeriana.as.personapp.domain.Phone;
 import co.edu.javeriana.as.personapp.mapper.PersonaMapperRest;
 import co.edu.javeriana.as.personapp.mapper.PhoneMapperRest;
+import co.edu.javeriana.as.personapp.model.request.EditPhoneRequest;
 import co.edu.javeriana.as.personapp.model.request.PhoneRequest;
 import co.edu.javeriana.as.personapp.model.response.PhoneResponse;
 import co.edu.javeriana.as.personapp.model.response.Response;
@@ -92,31 +93,40 @@ public class PhoneInputAdapterRest {
         try {
             String dbOption = setPhoneOutputPortInjection(request.getDatabase());
 
-            // Validación básica
-            if (request.getNumber() == null || request.getCompany() == null) {
-                throw new IllegalArgumentException("Phone number and company are required");
+            // Validación de campos obligatorios
+            if (request.getNumber() == null || request.getCompany() == null || request.getOwnerDni() == null) {
+                throw new IllegalArgumentException("Phone number, company, and ownerDni are required");
             }
 
+            // Obtener y validar el owner desde su identificación
+            Person owner = getAndValidateOwner(request.getOwnerDni());
+
+            // Construir el objeto Phone
             Phone phone = new Phone();
             phone.setNumber(request.getNumber());
             phone.setCompany(request.getCompany());
+            phone.setOwner(owner);
 
-            // Manejo del dueño
-            if (request.getOwnerDni() != null && !request.getOwnerDni().isEmpty()) {
-                Person owner = getAndValidateOwner(request.getOwnerDni());
-                phone.setOwner(owner);
-                phone = phoneInputPort.addPhoneToPerson(owner.getIdentification(), phone);
-            } else {
-                phone = phoneInputPort.create(phone);
-            }
+            // Crear el teléfono usando el caso de uso
+            Phone createdPhone = phoneInputPort.create(phone);
 
+            // Retornar el resultado mapeado
             return dbOption.equalsIgnoreCase(DatabaseOption.MARIA.toString())
-                    ? phoneMapperRest.fromDomainToAdapterRestMaria(phone)
-                    : phoneMapperRest.fromDomainToAdapterRestMongo(phone);
+                    ? phoneMapperRest.fromDomainToAdapterRestMaria(createdPhone)
+                    : phoneMapperRest.fromDomainToAdapterRestMongo(createdPhone);
 
+        } catch (NoExistException e) {
+            log.error("Owner not found: {}", e.getMessage());
+            return new PhoneResponse(request.getNumber(), request.getCompany(), request.getOwnerDni(),
+                    request.getDatabase(), "Owner not found");
+        } catch (IllegalArgumentException e) {
+            log.error("Validation error: {}", e.getMessage());
+            return new PhoneResponse(request.getNumber(), request.getCompany(), request.getOwnerDni(),
+                    request.getDatabase(), "Missing or invalid data");
         } catch (Exception e) {
-            log.error("Error creating phone: {}", e.getMessage());
-            return buildErrorResponse(request, e.getMessage());
+            log.error("Unexpected error creating phone: {}", e.getMessage());
+            return new PhoneResponse(request.getNumber(), request.getCompany(), request.getOwnerDni(),
+                    request.getDatabase(), "Server error");
         }
     }
 
@@ -150,28 +160,36 @@ public class PhoneInputAdapterRest {
                 error);
     }
 
-    public PhoneResponse editarTelefono(String number, PhoneRequest request) {
+    public PhoneResponse editarTelefono(String number, EditPhoneRequest request) {
         try {
             String dbOption = setPhoneOutputPortInjection(request.getDatabase());
-            Phone phone = phoneMapperRest.fromAdapterToDomain(request);
 
-            Phone updatedPhone = phoneInputPort.edit(number, phone);
+            // Buscar el teléfono existente para conservar campos no editables (como owner)
+            Phone existingPhone = phoneInputPort.findOne(number);
+            if (existingPhone == null) {
+                log.warn("Phone with number {} not found", number);
+                return new PhoneResponse(number, null, null, request.getDatabase(), "Phone not found");
+            }
+
+            // Actualizar solo los campos permitidos
+            existingPhone.setCompany(request.getCompany());
+
+            // Guardar los cambios
+            Phone updatedPhone = phoneInputPort.edit(number, existingPhone);
 
             return dbOption.equalsIgnoreCase(DatabaseOption.MARIA.toString())
                     ? phoneMapperRest.fromDomainToAdapterRestMaria(updatedPhone)
                     : phoneMapperRest.fromDomainToAdapterRestMongo(updatedPhone);
+
         } catch (NoExistException e) {
             log.error("Phone not found: {}", e.getMessage());
-            return new PhoneResponse(number, request.getCompany(), request.getOwnerDni(),
-                    request.getDatabase(), "Phone not found");
+            return new PhoneResponse(number, null, null, request.getDatabase(), "Phone not found");
         } catch (InvalidOptionException e) {
             log.error("Invalid database option: {}", e.getMessage());
-            return new PhoneResponse(number, request.getCompany(), request.getOwnerDni(),
-                    request.getDatabase(), "Invalid database option");
+            return new PhoneResponse(number, null, null, request.getDatabase(), "Invalid database option");
         } catch (Exception e) {
             log.error("Unexpected error: {}", e.getMessage());
-            return new PhoneResponse(number, request.getCompany(), request.getOwnerDni(),
-                    request.getDatabase(), "Server error");
+            return new PhoneResponse(number, null, null, request.getDatabase(), "Server error");
         }
     }
 
