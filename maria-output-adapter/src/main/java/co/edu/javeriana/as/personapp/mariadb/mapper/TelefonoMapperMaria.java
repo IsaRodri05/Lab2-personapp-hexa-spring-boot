@@ -1,6 +1,5 @@
 package co.edu.javeriana.as.personapp.mariadb.mapper;
 
-import org.springframework.beans.factory.annotation.Autowired;
 
 import co.edu.javeriana.as.personapp.common.annotations.Mapper;
 import co.edu.javeriana.as.personapp.domain.Person;
