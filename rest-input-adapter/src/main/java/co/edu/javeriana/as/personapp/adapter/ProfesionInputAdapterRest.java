@@ -104,4 +104,93 @@ public class ProfesionInputAdapterRest {
             );
         }
     }
+
+    public ProfesionResponse editarProfesion(ProfesionRequest request)  {
+        try {
+            String dbOption = setProfessionOutputPortInjection(request.getDatabase());
+            Profession profession = professionInputPort.edit(
+                Integer.parseInt(request.getIdentificacion()), 
+                profesionMapperRest.fromAdapterToDomain(request)
+            );
+
+            if (dbOption.equalsIgnoreCase(DatabaseOption.MARIA.toString())) {
+                return profesionMapperRest.fromDomainToAdapterRestMaria(profession);
+            } else {
+                return profesionMapperRest.fromDomainToAdapterRestMongo(profession);
+            }
+
+        } catch (InvalidOptionException e) {
+            log.error("Invalid database option: {}", e.getMessage());
+            return new ProfesionResponse(
+                request.getIdentificacion(),
+                request.getNombre(),
+                request.getDescripcion(),
+                request.getDatabase(),
+                "Invalid database option"
+            );
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid input data: {}", e.getMessage());
+            return new ProfesionResponse(
+                request.getIdentificacion(),
+                request.getNombre(),
+                request.getDescripcion(),
+                request.getDatabase(),
+                "Invalid input data: "
+            );
+        } catch (Exception e) {
+            log.error("Unexpected error: {}", e.getMessage());
+            return new ProfesionResponse(
+                request.getIdentificacion(),
+                request.getNombre(),
+                request.getDescripcion(),
+                request.getDatabase(),
+                "Server error"
+            );
+        }
+    }
+
+    public Boolean eliminarProfesion(Integer identificacion, String database) {
+        try {
+            setProfessionOutputPortInjection(database);
+            return professionInputPort.drop(identificacion);
+        } catch (InvalidOptionException e) {
+            log.error("Invalid database option: {}", e.getMessage());
+            return false;
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid input data: {}", e.getMessage());
+            return false;
+        } catch (Exception e) {
+            log.error("Unexpected error: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    public ProfesionResponse buscarUnaProfesion(Integer identificacion, String dbOption) {
+        try {
+            Profession profession = professionInputPort.findOne(identificacion);
+            if (dbOption.equalsIgnoreCase(DatabaseOption.MARIA.toString())) {
+                return profesionMapperRest.fromDomainToAdapterRestMaria(profession);
+            } else {
+                return profesionMapperRest.fromDomainToAdapterRestMongo(profession);
+            }
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid input data: {}", e.getMessage());
+            return new ProfesionResponse(
+                String.valueOf(identificacion),
+                null,
+                null,
+                dbOption,
+                "Invalid database option"
+            );
+        } catch (Exception e) {
+            log.error("Unexpected error: {}", e.getMessage());
+            return new ProfesionResponse(
+                String.valueOf(identificacion),
+                null,
+                null,
+                dbOption,
+                "Invalid database option"
+            );
+        }
+    }
 }

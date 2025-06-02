@@ -70,12 +70,12 @@ public class ProfessionUseCase implements ProfessionInputPort {
         return findAll().size();
     }
 
-    @Override
+    /*@Override
     public List<Study> getStudies(Integer identification) throws NoExistException {
         Profession oldProfession = professionPersistence.findById(identification);
         if(oldProfession != null) 
             return oldProfession.getStudies();
         throw new NoExistException(
             "The profession with id " + identification + " does not exist into db, cannot be getting studies");
-    }
+    }*/
 }

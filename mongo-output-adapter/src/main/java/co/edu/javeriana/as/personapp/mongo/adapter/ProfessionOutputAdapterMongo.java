@@ -61,4 +61,10 @@ public class ProfessionOutputAdapterMongo implements ProfessionOutputPort {
             return profesionMapperMongo.fromAdapterToDomain(profesionRepositoryMongo.findById(identification).get());
         }
     }
+
+    @Override
+    public Integer count() {
+        log.debug("Into count on Adapter MongoDB");
+        return (int) profesionRepositoryMongo.count();
+    }
 }
