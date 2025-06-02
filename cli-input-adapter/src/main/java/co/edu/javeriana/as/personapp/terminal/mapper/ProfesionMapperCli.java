@@ -14,4 +14,12 @@ public class ProfesionMapperCli {
         profesionModelCli.setDescripcion(profession.getDescription());
         return profesionModelCli;
     }
+
+    public Profession fromAdapterCliToDomain(ProfesionModelCli profesionModelCli) {
+        Profession profession = new Profession();
+        profession.setIdentification(profesionModelCli.getIdentificacion());
+        profession.setName(profesionModelCli.getNombre());
+        profession.setDescription(profesionModelCli.getDescripcion());
+        return profession;
+    }
 }

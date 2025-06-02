@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import co.edu.javeriana.as.personapp.terminal.adapter.PersonaInputAdapterCli;
+import co.edu.javeriana.as.personapp.terminal.adapter.ProfesionInputAdapterCli;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -17,6 +18,9 @@ public class MenuPrincipal {
 	@Autowired
 	private PersonaInputAdapterCli personaInputAdapterCli;
 
+	@Autowired
+	private ProfesionInputAdapterCli profesionInputAdapterCli;
+
 	private static final int SALIR = 0;
 	private static final int MODULO_PERSONA = 1;
 	private static final int MODULO_PROFESION = 2;
@@ -25,10 +29,12 @@ public class MenuPrincipal {
 
 	//Menus
 	private final PersonaMenu personaMenu;
+	private final ProfesionMenu profesionMenu;
 	private final Scanner keyboard;
 
     public MenuPrincipal() {
         this.personaMenu = new PersonaMenu();
+		this.profesionMenu = new ProfesionMenu();
         this.keyboard = new Scanner(System.in);
     }
 
@@ -48,6 +54,7 @@ public class MenuPrincipal {
 				log.info("volvio");
 				break;
 			case MODULO_PROFESION:
+				profesionMenu.iniciarMenu(profesionInputAdapterCli, keyboard);
 				log.warn("Implementar Menu");
 				break;
 			case MODULO_TELEFONO:
@@ -82,5 +89,5 @@ public class MenuPrincipal {
 			return leerOpcion();
 		}
 	}
-
+	
 }

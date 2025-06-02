@@ -11,7 +11,9 @@ import co.edu.javeriana.as.personapp.application.port.out.ProfessionOutputPort;
 import co.edu.javeriana.as.personapp.application.usecase.ProfessionUseCase;
 import co.edu.javeriana.as.personapp.common.annotations.Adapter;
 import co.edu.javeriana.as.personapp.common.exceptions.InvalidOptionException;
+import co.edu.javeriana.as.personapp.common.exceptions.NoExistException;
 import co.edu.javeriana.as.personapp.common.setup.DatabaseOption;
+import co.edu.javeriana.as.personapp.domain.Profession;
 import co.edu.javeriana.as.personapp.terminal.mapper.ProfesionMapperCli;
 import co.edu.javeriana.as.personapp.terminal.model.ProfesionModelCli;
 import lombok.extern.slf4j.Slf4j;
@@ -21,11 +23,11 @@ import lombok.extern.slf4j.Slf4j;
 public class ProfesionInputAdapterCli {
 
     @Autowired
-    @Qualifier("profesionOutputAdapterMaria")
+    @Qualifier("professionOutputAdapterMaria")
     private ProfessionOutputPort professionOutputPortMaria;
 
     @Autowired
-    @Qualifier("profesionOutputAdapterMongo")
+    @Qualifier("professionOutputAdapterMongo")
     private ProfessionOutputPort professionOutputPortMongo;
 
     @Autowired
@@ -57,4 +59,54 @@ public class ProfesionInputAdapterCli {
             .map(profesionMapperCli::fromDomainToAdapterCli)
             .forEach(System.out::println);
     }
+
+    public Profession create(Integer identification, String name, String description) {
+        ProfesionModelCli profesionModelCli = new ProfesionModelCli(identification, name, description);
+        log.info("Into create ProfessionEntity in Input Adapter");
+        return professionInputPort.create(profesionMapperCli.fromAdapterCliToDomain(profesionModelCli));
+    }
+
+    public Profession edit(Integer identificacion, String newName, String newDescription) throws NoExistException {
+        log.info("Into edit ProfessionEntity in Input Adapter");
+        ProfesionModelCli profesionModelCli = new ProfesionModelCli(identificacion, newName, newDescription);
+        try {
+            return professionInputPort.edit(identificacion, profesionMapperCli.fromAdapterCliToDomain(profesionModelCli));
+        } catch (NoExistException e) {
+            throw new NoExistException("Error in edit profession: " + e.getMessage());
+        }
+    }
+
+    public Boolean drop(Integer identificacion) throws NoExistException {
+        log.info("Into drop ProfessionEntity in Input Adapter");
+        try {
+            return professionInputPort.drop(identificacion);
+        } catch (NoExistException e) {
+            throw new NoExistException("Error in delete profession: "+ e.getMessage());
+        }
+    }
+
+    public ProfesionModelCli findOne(Integer identificacion) throws NoExistException {
+        log.info("Into findOne ProfessionEntity in Input Adapter");
+        try {
+            return profesionMapperCli.fromDomainToAdapterCli(professionInputPort.findOne(identificacion));
+        } catch (NoExistException e) {
+            throw new NoExistException("Error in find one profession: "+e.getMessage());
+        }
+    }
+
+    public Integer count() {
+        log.info("Into count ProfessionEntity in Input Adapter");
+        return professionInputPort.count();
+    }
+
+    /*public List<EstudiosModelCli> getStudies(Integer identificacion) throws NoExistException {
+        log.info("Into getStudies ProfessionEntity in Input Adapter");
+        try {
+            return professionInputPort.getStudies(identificacion).stream()
+                .map(estudiosMapperCli::fromDomainToAdapterCli)
+                .collect(Collectors.toList());
+        } catch (NoExistException e) {
+            throw new NoExistException(e.getMessage());
+        }
+    }*/
 }
