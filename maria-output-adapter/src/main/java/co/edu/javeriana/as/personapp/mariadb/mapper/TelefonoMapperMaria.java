@@ -12,30 +12,41 @@ import lombok.NonNull;
 @Mapper
 public class TelefonoMapperMaria {
 
-	@Autowired
-	private PersonaMapperMaria personaMapperMaria;
+    public TelefonoEntity fromDomainToAdapter(Phone phone) {
+        if (phone == null) return null;
 
-	public TelefonoEntity fromDomainToAdapter(Phone phone) {
-		TelefonoEntity telefonoEntity = new TelefonoEntity();
-		telefonoEntity.setNum(phone.getNumber());
-		telefonoEntity.setOper(phone.getCompany());
-		telefonoEntity.setDuenio(validateDuenio(phone.getOwner()));
-		return telefonoEntity;
-	}
+        TelefonoEntity telefonoEntity = new TelefonoEntity();
+        telefonoEntity.setNum(phone.getNumber());
+        telefonoEntity.setOper(phone.getCompany());
 
-	private PersonaEntity validateDuenio(@NonNull Person owner) {
-		return owner != null ? personaMapperMaria.fromDomainToAdapter(owner) : new PersonaEntity();
-	}
+        // Setear solo referencia mínima al dueño para evitar ciclo
+        if (phone.getOwner() != null) {
+            PersonaEntity duenio = new PersonaEntity();
+            duenio.setCc(phone.getOwner().getIdentification());
+            telefonoEntity.setDuenio(duenio);
+        } else {
+            telefonoEntity.setDuenio(null);
+        }
 
-	public Phone fromAdapterToDomain(TelefonoEntity telefonoEntity) {
-		Phone phone = new Phone();
-		phone.setNumber(telefonoEntity.getNum());
-		phone.setCompany(telefonoEntity.getOper());
-		phone.setOwner(validateOwner(telefonoEntity.getDuenio()));
-		return phone;
-	}
+        return telefonoEntity;
+    }
 
-	private @NonNull Person validateOwner(PersonaEntity duenio) {
-		return duenio != null ? personaMapperMaria.fromAdapterToDomain(duenio) : new Person();
-	}
+    public Phone fromAdapterToDomain(TelefonoEntity telefonoEntity) {
+        if (telefonoEntity == null) return null;
+
+        Phone phone = new Phone();
+        phone.setNumber(telefonoEntity.getNum());
+        phone.setCompany(telefonoEntity.getOper());
+
+        // Setear solo referencia mínima al owner para evitar ciclo
+        if (telefonoEntity.getDuenio() != null) {
+            Person owner = new Person();
+            owner.setIdentification(telefonoEntity.getDuenio().getCc());
+            phone.setOwner(owner);
+        } else {
+            phone.setOwner(null);
+        }
+
+        return phone;
+    }
 }

@@ -26,9 +26,7 @@ public class PersonaMapperMaria {
     private TelefonoMapperMaria telefonoMapperMaria;
 
     public PersonaEntity fromDomainToAdapter(Person person) {
-        if (person == null) {
-            throw new IllegalArgumentException("Person cannot be null");
-        }
+        if (person == null) return null;
 
         PersonaEntity personaEntity = new PersonaEntity();
         personaEntity.setCc(person.getIdentification());
@@ -36,60 +34,68 @@ public class PersonaMapperMaria {
         personaEntity.setApellido(person.getLastName());
         personaEntity.setGenero(Gender.toCharDbValue(person.getGender()));
         personaEntity.setEdad(validateEdad(person.getAge()));
-        personaEntity.setEstudios(mapStudiesToEntities(person.getStudies()));
-        personaEntity.setTelefonos(mapPhonesToEntities(person.getPhoneNumbers()));
+
+        // Mapear estudios si existen
+        if (person.getStudies() != null) {
+            List<EstudiosEntity> estudios = person.getStudies().stream()
+                .map(estudiosMapperMaria::fromDomainToAdapter)
+                .collect(Collectors.toList());
+            estudios.forEach(e -> e.setPersona(personaEntity)); // Establecer relación inversa
+            personaEntity.setEstudios(estudios);
+        }
+
+        // Mapear teléfonos si existen
+        if (person.getPhoneNumbers() != null) {
+            List<TelefonoEntity> telefonos = person.getPhoneNumbers().stream()
+                .map(phone -> {
+                    TelefonoEntity tel = telefonoMapperMaria.fromDomainToAdapter(phone);
+                    tel.setDuenio(personaEntity); // Referencia inversa
+                    return tel;
+                })
+                .collect(Collectors.toList());
+            personaEntity.setTelefonos(telefonos);
+        }
+
         return personaEntity;
     }
 
     public Person fromAdapterToDomain(PersonaEntity personaEntity) {
-        if (personaEntity == null) {
-            throw new IllegalArgumentException("PersonaEntity cannot be null");
+        if (personaEntity == null) return null;
+
+        Person person = new Person(
+            personaEntity.getCc(),
+            personaEntity.getNombre(),
+            personaEntity.getApellido(),
+            String.valueOf(personaEntity.getGenero()),
+            personaEntity.getEdad()
+        );
+
+        // Mapear estudios si existen
+        if (personaEntity.getEstudios() != null) {
+            person.setStudies(
+                personaEntity.getEstudios().stream()
+                    .map(estudiosMapperMaria::fromAdapterToDomain)
+                    .collect(Collectors.toList())
+            );
         }
 
-        Person person = new Person();
-        person.setIdentification(personaEntity.getCc());
-        person.setFirstName(personaEntity.getNombre());
-        person.setLastName(personaEntity.getApellido());
-        person.setGender(String.valueOf(personaEntity.getGenero()));
-        person.setAge(personaEntity.getEdad());
-        person.setStudies(mapEntitiesToStudies(personaEntity.getEstudios()));
-        person.setPhoneNumbers(mapEntitiesToPhones(personaEntity.getTelefonos()));
+        // Mapear teléfonos si existen
+        if (personaEntity.getTelefonos() != null) {
+            person.setPhoneNumbers(
+                personaEntity.getTelefonos().stream()
+                    .map(tel -> {
+                        Phone phone = telefonoMapperMaria.fromAdapterToDomain(tel);
+                        phone.setOwner(person); // Referencia inversa
+                        return phone;
+                    })
+                    .collect(Collectors.toList())
+            );
+        }
+
         return person;
     }
 
     private Integer validateEdad(Integer age) {
         return age != null && age >= 0 ? age : null;
-    }
-
-    private List<EstudiosEntity> mapStudiesToEntities(List<Study> studies) {
-        return studies != null ? 
-            studies.stream()
-                .map(estudiosMapperMaria::fromDomainToAdapter)
-                .collect(Collectors.toList()) : 
-            new ArrayList<>();
-    }
-
-    private List<TelefonoEntity> mapPhonesToEntities(List<Phone> phones) {
-        return phones != null ? 
-            phones.stream()
-                .map(telefonoMapperMaria::fromDomainToAdapter)
-                .collect(Collectors.toList()) : 
-            new ArrayList<>();
-    }
-
-    private List<Study> mapEntitiesToStudies(List<EstudiosEntity> estudiosEntities) {
-        return estudiosEntities != null ? 
-            estudiosEntities.stream()
-                .map(estudiosMapperMaria::fromAdapterToDomain)
-                .collect(Collectors.toList()) : 
-            new ArrayList<>();
-    }
-
-    private List<Phone> mapEntitiesToPhones(List<TelefonoEntity> telefonoEntities) {
-        return telefonoEntities != null ? 
-            telefonoEntities.stream()
-                .map(telefonoMapperMaria::fromAdapterToDomain)
-                .collect(Collectors.toList()) : 
-            new ArrayList<>();
     }
 }
