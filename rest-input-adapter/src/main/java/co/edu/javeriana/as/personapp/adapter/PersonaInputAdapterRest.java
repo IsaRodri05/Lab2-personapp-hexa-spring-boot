@@ -16,6 +16,7 @@ import co.edu.javeriana.as.personapp.common.exceptions.InvalidOptionException;
 import co.edu.javeriana.as.personapp.common.setup.DatabaseOption;
 import co.edu.javeriana.as.personapp.domain.Person;
 import co.edu.javeriana.as.personapp.mapper.PersonaMapperRest;
+import co.edu.javeriana.as.personapp.model.request.EditPersonRequest;
 import co.edu.javeriana.as.personapp.model.request.PersonaRequest;
 import co.edu.javeriana.as.personapp.model.response.PersonaResponse;
 import co.edu.javeriana.as.personapp.model.response.Response;
@@ -96,24 +97,31 @@ public class PersonaInputAdapterRest {
 		}
 	}
 
-	public PersonaResponse editarPersona(PersonaRequest request) {
+	public PersonaResponse editarPersona(String dni, EditPersonRequest request) {
 		try {
 			String dbOption = setPersonOutputPortInjection(request.getDatabase());
-			Person person = personaMapperRest.fromAdapterToDomain(request);
+
+			// Convertir datos del request a entidad Person
+			Person personToUpdate = new Person();
+			personToUpdate.setIdentification(Integer.parseInt(dni));
+			personToUpdate.setFirstName(request.getFirstName());
+			personToUpdate.setLastName(request.getLastName());
+			personToUpdate.setGender(request.getSex());
+			personToUpdate.setAge(request.getAge() != null ? Integer.parseInt(request.getAge()) : null);
 
 			// Verificar si la persona existe
-			Person existingPerson = personInputPort.findOne(Integer.parseInt(request.getDni()));
+			Person existingPerson = personInputPort.findOne(Integer.parseInt(dni));
 			if (existingPerson == null) {
 				return new PersonaResponse(
-						request.getDni(), request.getFirstName(), request.getLastName(),
+						dni, request.getFirstName(), request.getLastName(),
 						request.getAge(), request.getSex(), request.getDatabase(),
 						"Person not found");
 			}
 
 			// Actualizar la persona
-			Person updatedPerson = personInputPort.edit(Integer.parseInt(request.getDni()), person);
+			Person updatedPerson = personInputPort.edit(Integer.parseInt(dni), personToUpdate);
 
-			// Mapear la respuesta dependiendo de la base de datos usada
+			// Mapear respuesta según base de datos
 			if (dbOption.equalsIgnoreCase(DatabaseOption.MARIA.toString())) {
 				return personaMapperRest.fromDomainToAdapterRestMaria(updatedPerson);
 			} else {
@@ -122,17 +130,17 @@ public class PersonaInputAdapterRest {
 		} catch (InvalidOptionException e) {
 			log.error("Invalid database option: {}", e.getMessage());
 			return new PersonaResponse(
-					request.getDni(), request.getFirstName(), request.getLastName(),
+					dni, request.getFirstName(), request.getLastName(),
 					request.getAge(), request.getSex(), request.getDatabase(), "Invalid database option");
 		} catch (NumberFormatException e) {
 			log.error("Invalid DNI format: {}", e.getMessage());
 			return new PersonaResponse(
-					request.getDni(), request.getFirstName(), request.getLastName(),
+					dni, request.getFirstName(), request.getLastName(),
 					request.getAge(), request.getSex(), request.getDatabase(), "Invalid DNI format");
 		} catch (Exception e) {
 			log.error("Unexpected error: {}", e.getMessage());
 			return new PersonaResponse(
-					request.getDni(), request.getFirstName(), request.getLastName(),
+					dni, request.getFirstName(), request.getLastName(),
 					request.getAge(), request.getSex(), request.getDatabase(), "Server error");
 		}
 	}

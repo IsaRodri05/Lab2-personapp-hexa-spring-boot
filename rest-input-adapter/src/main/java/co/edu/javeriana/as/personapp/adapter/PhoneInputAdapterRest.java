@@ -91,7 +91,7 @@ public class PhoneInputAdapterRest {
     public PhoneResponse crearTelefono(PhoneRequest request) {
         try {
             String dbOption = setPhoneOutputPortInjection(request.getDatabase());
-            
+
             // Validación básica
             if (request.getNumber() == null || request.getCompany() == null) {
                 throw new IllegalArgumentException("Phone number and company are required");
@@ -111,8 +111,8 @@ public class PhoneInputAdapterRest {
             }
 
             return dbOption.equalsIgnoreCase(DatabaseOption.MARIA.toString())
-                ? phoneMapperRest.fromDomainToAdapterRestMaria(phone)
-                : phoneMapperRest.fromDomainToAdapterRestMongo(phone);
+                    ? phoneMapperRest.fromDomainToAdapterRestMaria(phone)
+                    : phoneMapperRest.fromDomainToAdapterRestMongo(phone);
 
         } catch (Exception e) {
             log.error("Error creating phone: {}", e.getMessage());
@@ -124,13 +124,17 @@ public class PhoneInputAdapterRest {
         try {
             Integer dni = Integer.parseInt(ownerDni);
             Person owner = personInputPort.findOne(dni);
-            
+
             // Validar campos no nulos
-            if (owner.getGender() == null) owner.setGender(Gender.OTHER.name());
-            if (owner.getFirstName() == null) owner.setFirstName("");
-            if (owner.getLastName() == null) owner.setLastName("");
-            if (owner.getAge() == null) owner.setAge(0);
-            
+            if (owner.getGender() == null)
+                owner.setGender(Gender.OTHER.name());
+            if (owner.getFirstName() == null)
+                owner.setFirstName("");
+            if (owner.getLastName() == null)
+                owner.setLastName("");
+            if (owner.getAge() == null)
+                owner.setAge(0);
+
             return owner;
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Owner DNI must be a valid number");
@@ -139,35 +143,34 @@ public class PhoneInputAdapterRest {
 
     private PhoneResponse buildErrorResponse(PhoneRequest request, String error) {
         return new PhoneResponse(
-            request.getNumber(),
-            request.getCompany(),
-            request.getOwnerDni(),
-            request.getDatabase(),
-            error
-        );
+                request.getNumber(),
+                request.getCompany(),
+                request.getOwnerDni(),
+                request.getDatabase(),
+                error);
     }
 
-    public PhoneResponse editarTelefono(PhoneRequest request) {
+    public PhoneResponse editarTelefono(String number, PhoneRequest request) {
         try {
             String dbOption = setPhoneOutputPortInjection(request.getDatabase());
             Phone phone = phoneMapperRest.fromAdapterToDomain(request);
 
-            Phone updatedPhone = phoneInputPort.edit(request.getNumber(), phone);
+            Phone updatedPhone = phoneInputPort.edit(number, phone);
 
             return dbOption.equalsIgnoreCase(DatabaseOption.MARIA.toString())
                     ? phoneMapperRest.fromDomainToAdapterRestMaria(updatedPhone)
                     : phoneMapperRest.fromDomainToAdapterRestMongo(updatedPhone);
         } catch (NoExistException e) {
             log.error("Phone not found: {}", e.getMessage());
-            return new PhoneResponse(request.getNumber(), request.getCompany(), request.getOwnerDni(),
+            return new PhoneResponse(number, request.getCompany(), request.getOwnerDni(),
                     request.getDatabase(), "Phone not found");
         } catch (InvalidOptionException e) {
             log.error("Invalid database option: {}", e.getMessage());
-            return new PhoneResponse(request.getNumber(), request.getCompany(), request.getOwnerDni(),
+            return new PhoneResponse(number, request.getCompany(), request.getOwnerDni(),
                     request.getDatabase(), "Invalid database option");
         } catch (Exception e) {
             log.error("Unexpected error: {}", e.getMessage());
-            return new PhoneResponse(request.getNumber(), request.getCompany(), request.getOwnerDni(),
+            return new PhoneResponse(number, request.getCompany(), request.getOwnerDni(),
                     request.getDatabase(), "Server error");
         }
     }

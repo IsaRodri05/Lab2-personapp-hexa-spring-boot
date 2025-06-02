@@ -24,17 +24,17 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @RequestMapping("/api/v1/phone")
 public class PhoneControllerV1 {
-    
+
     @Autowired
     private PhoneInputAdapterRest phoneInputAdapterRest;
-    
+
     @ResponseBody
     @GetMapping(path = "/{database}", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<PhoneResponse> phones(@PathVariable String database) {
         log.info("Into phones REST API");
         return phoneInputAdapterRest.historial(database.toUpperCase());
     }
-    
+
     @ResponseBody
     @PostMapping(path = "", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public PhoneResponse createPhone(@RequestBody PhoneRequest request) {
@@ -42,18 +42,18 @@ public class PhoneControllerV1 {
         return phoneInputAdapterRest.crearTelefono(request);
     }
 
+    @PutMapping(path = "/{number}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    @PutMapping(path = "", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public PhoneResponse editPhone(@RequestBody PhoneRequest request) {
-        log.info("Into editPhone REST API");
-        return phoneInputAdapterRest.editarTelefono(request);
+    public PhoneResponse editPhone(@PathVariable String number, @RequestBody PhoneRequest request) {
+        log.info("Into editPhone REST API for number {}", number);
+        return phoneInputAdapterRest.editarTelefono(number, request);
     }
-    
+
     @ResponseBody
     @DeleteMapping(path = "/{database}/{phoneNumber}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Response deletePhone(@PathVariable String database, @PathVariable String phoneNumber) {
         log.info("Into deletePhone REST API");
         return phoneInputAdapterRest.eliminarTelefono(database.toUpperCase(), phoneNumber);
     }
-    
+
 }
