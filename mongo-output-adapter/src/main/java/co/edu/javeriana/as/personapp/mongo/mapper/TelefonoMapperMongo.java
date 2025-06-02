@@ -1,41 +1,46 @@
 package co.edu.javeriana.as.personapp.mongo.mapper;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import co.edu.javeriana.as.personapp.common.annotations.Mapper;
 import co.edu.javeriana.as.personapp.domain.Person;
 import co.edu.javeriana.as.personapp.domain.Phone;
 import co.edu.javeriana.as.personapp.mongo.document.PersonaDocument;
 import co.edu.javeriana.as.personapp.mongo.document.TelefonoDocument;
-import lombok.NonNull;
 
 @Mapper
 public class TelefonoMapperMongo {
 
-	@Autowired
-	private PersonaMapperMongo personaMapperMongo;
 
-	public TelefonoDocument fromDomainToAdapter(Phone phone) {
-		TelefonoDocument telefonoDocument = new TelefonoDocument();
-		telefonoDocument.setId(phone.getNumber());
-		telefonoDocument.setOper(phone.getCompany());
-		telefonoDocument.setPrimaryDuenio(validateDuenio(phone.getOwner()));
-		return telefonoDocument;
-	}
+    public TelefonoDocument fromDomainToAdapter(Phone phone) {
+        if (phone == null)
+            return null;
 
-	private PersonaDocument validateDuenio(@NonNull Person owner) {
-		return owner != null ? personaMapperMongo.fromDomainToAdapter(owner) : new PersonaDocument();
-	}
+        TelefonoDocument telefonoDocument = new TelefonoDocument();
+        telefonoDocument.setId(phone.getNumber());
+        telefonoDocument.setOper(phone.getCompany());
 
-	public Phone fromAdapterToDomain(TelefonoDocument telefonoDocument) {
-		Phone phone = new Phone();
-		phone.setNumber(telefonoDocument.getId());
-		phone.setCompany(telefonoDocument.getOper());
-		phone.setOwner(validateOwner(telefonoDocument.getPrimaryDuenio()));
-		return phone;
-	}
+        if (phone.getOwner() != null) {
+            PersonaDocument duenioDocument = new PersonaDocument();
+            duenioDocument.setId(phone.getOwner().getIdentification());
+            telefonoDocument.setPrimaryDuenio(duenioDocument);
+        }
 
-	private @NonNull Person validateOwner(PersonaDocument duenio) {
-		return duenio != null ? personaMapperMongo.fromAdapterToDomain(duenio) : new Person();
-	}
+        return telefonoDocument;
+    }
+
+    public Phone fromAdapterToDomain(TelefonoDocument telefonoDocument) {
+        Phone phone = new Phone();
+        phone.setNumber(telefonoDocument.getId());
+        phone.setCompany(telefonoDocument.getOper());
+
+        if (telefonoDocument.getPrimaryDuenio() != null) {
+            Person owner = new Person();
+            owner.setIdentification(telefonoDocument.getPrimaryDuenio().getId());
+            phone.setOwner(owner);
+        } else {
+            phone.setOwner(null);
+        }
+
+        return phone;
+    }
+
 }
