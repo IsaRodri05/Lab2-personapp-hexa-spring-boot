@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import co.edu.javeriana.as.personapp.adapter.PhoneInputAdapterRest;
 import co.edu.javeriana.as.personapp.model.request.EditPhoneRequest;
 import co.edu.javeriana.as.personapp.model.request.PhoneRequest;
+import co.edu.javeriana.as.personapp.model.response.PersonaResponse;
 import co.edu.javeriana.as.personapp.model.response.PhoneResponse;
 import co.edu.javeriana.as.personapp.model.response.Response;
 import lombok.extern.slf4j.Slf4j;
@@ -56,5 +57,15 @@ public class PhoneControllerV1 {
         log.info("Into deletePhone REST API");
         return phoneInputAdapterRest.eliminarTelefono(database.toUpperCase(), phoneNumber);
     }
+
+    @ResponseBody
+    @GetMapping(path = "/{database}/{number}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public PhoneResponse obtenerTelefono(
+            @PathVariable String database, 
+            @PathVariable String number) {
+        log.info("Into obtenerTelefono REST API");
+        return phoneInputAdapterRest.obtenerTelefono(database.toUpperCase(), number);
+    }
+
 
 }

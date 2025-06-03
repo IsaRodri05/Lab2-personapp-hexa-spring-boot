@@ -26,6 +26,7 @@ import co.edu.javeriana.as.personapp.mapper.PersonaMapperRest;
 import co.edu.javeriana.as.personapp.mapper.PhoneMapperRest;
 import co.edu.javeriana.as.personapp.model.request.EditPhoneRequest;
 import co.edu.javeriana.as.personapp.model.request.PhoneRequest;
+import co.edu.javeriana.as.personapp.model.response.PersonaResponse;
 import co.edu.javeriana.as.personapp.model.response.PhoneResponse;
 import co.edu.javeriana.as.personapp.model.response.Response;
 import lombok.extern.slf4j.Slf4j;
@@ -211,6 +212,36 @@ public class PhoneInputAdapterRest {
         } catch (Exception e) {
             log.error("Unexpected error: {}", e.getMessage());
             return new Response("ERROR", "Server error while deleting phone", LocalDateTime.now());
+        }
+    }
+
+    public PhoneResponse obtenerTelefono(String database, String number) {
+        try {
+            setPhoneOutputPortInjection(database);
+            Phone phone = phoneInputPort.findOne(number);
+            
+            return new PhoneResponse(
+                phone.getNumber(),
+                phone.getCompany(),
+                phone.getOwner() != null ? String.valueOf(phone.getOwner().getIdentification()) : null,
+                database,
+                "SUCCESS"
+            );
+        } catch (NoExistException e) {
+            log.error("Phone not found: {}", number);
+            return new PhoneResponse(
+                number, null, null, database, "ERROR: " + e.getMessage()
+            );
+        } catch (InvalidOptionException e) {
+            log.error("Invalid database option: {}", database);
+            return new PhoneResponse(
+                number, null, null, database, "ERROR: Invalid database"
+            );
+        } catch (Exception e) {
+            log.error("Unexpected error: {}", e.getMessage());
+            return new PhoneResponse(
+                number, null, null, database, "ERROR: " + e.getMessage()
+            );
         }
     }
 
