@@ -47,7 +47,7 @@ public class StudyOutputAdapterMongo implements StudyOutputPort {
         String personaIdStr = String.valueOf(personId);
         String profesionIdStr = String.valueOf(professionId);
 
-        EstudiosDocument doc = estudiosRepository.findByPersona_IdAndProfesion_Id(personaIdStr, profesionIdStr);
+        EstudiosDocument doc = estudiosRepository.findByPrimaryPersona_IdAndPrimaryProfesion_Id(personaIdStr, profesionIdStr);
         return estudiosMapper.fromAdapterToDomain(doc);
     }
 
@@ -57,7 +57,7 @@ public class StudyOutputAdapterMongo implements StudyOutputPort {
         String profesionIdStr = String.valueOf(study.getProfession().getIdentification());
 
         EstudiosDocument existing = estudiosRepository
-            .findByPersona_IdAndProfesion_Id(personaIdStr, profesionIdStr);
+            .findByPrimaryPersona_IdAndPrimaryProfesion_Id(personaIdStr, profesionIdStr);
 
         if (existing == null) {
             return null;
@@ -77,7 +77,7 @@ public class StudyOutputAdapterMongo implements StudyOutputPort {
         String profesionIdStr = String.valueOf(professionId);
 
         EstudiosDocument existing = estudiosRepository
-            .findByPersona_IdAndProfesion_Id(personaIdStr, profesionIdStr);
+            .findByPrimaryPersona_IdAndPrimaryProfesion_Id(personaIdStr, profesionIdStr);
 
         if (existing == null) {
             return false;

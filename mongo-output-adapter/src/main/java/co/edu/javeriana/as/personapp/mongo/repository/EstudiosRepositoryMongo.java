@@ -10,9 +10,9 @@ import co.edu.javeriana.as.personapp.mongo.document.EstudiosDocument;
 @Repository
 public interface EstudiosRepositoryMongo extends MongoRepository<EstudiosDocument, String> {
     
-    List<EstudiosDocument> findByPersona_Id(String personaId);
+    List<EstudiosDocument> findByPrimaryPersona_Id(String personaId);
 
-    List<EstudiosDocument> findByProfesion_Id(String profesionId);
+    List<EstudiosDocument> findByPrimaryProfesion_Id(String profesionId);
 
-    EstudiosDocument findByPersona_IdAndProfesion_Id(String personaId, String profesionId);
+    EstudiosDocument findByPrimaryPersona_IdAndPrimaryProfesion_Id(String personaId, String profesionId);
 }

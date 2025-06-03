@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.context.annotation.Primary;
+
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +18,7 @@ import co.edu.javeriana.as.personapp.mariadb.mapper.EstudiosMapperMaria;
 import co.edu.javeriana.as.personapp.mariadb.repository.EstudiosRepositoryMaria;
 
 @Component
+@Primary
 @Transactional
 public class StudyOutputAdapterMaria implements StudyOutputPort {
 
