@@ -13,6 +13,7 @@ import co.edu.javeriana.as.personapp.application.port.out.PersonOutputPort;
 import co.edu.javeriana.as.personapp.application.usecase.PersonUseCase;
 import co.edu.javeriana.as.personapp.common.annotations.Adapter;
 import co.edu.javeriana.as.personapp.common.exceptions.InvalidOptionException;
+import co.edu.javeriana.as.personapp.common.exceptions.NoExistException;
 import co.edu.javeriana.as.personapp.common.setup.DatabaseOption;
 import co.edu.javeriana.as.personapp.domain.Person;
 import co.edu.javeriana.as.personapp.mapper.PersonaMapperRest;
@@ -65,6 +66,51 @@ public class PersonaInputAdapterRest {
 		} catch (InvalidOptionException e) {
 			log.warn(e.getMessage());
 			return new ArrayList<PersonaResponse>();
+		}
+	}
+
+	public PersonaResponse obtenerPersona(String database, String dni) {
+		try {
+			String dbOption = setPersonOutputPortInjection(database);
+			int id = Integer.parseInt(dni);
+			Person person = personInputPort.findOne(id);
+
+			// Mapear según la base de datos
+			if (dbOption.equalsIgnoreCase(DatabaseOption.MARIA.toString())) {
+				return new PersonaResponse(
+						dni,
+						person.getFirstName(),
+						person.getLastName(),
+						String.valueOf(person.getAge()),
+						person.getGender(),
+						database,
+						"SUCCESS");
+			} else {
+				return new PersonaResponse(
+						dni,
+						person.getFirstName(),
+						person.getLastName(),
+						String.valueOf(person.getAge()),
+						person.getGender(),
+						database,
+						"SUCCESS");
+			}
+		} catch (NumberFormatException e) {
+			log.error("Invalid DNI format: {}", dni);
+			return new PersonaResponse(
+					dni, null, null, null, null, database, "ERROR: Invalid DNI format");
+		} catch (NoExistException e) {
+			log.error("Person not found: {}", dni);
+			return new PersonaResponse(
+					dni, null, null, null, null, database, "ERROR: Person not found");
+		} catch (InvalidOptionException e) {
+			log.error("Invalid database option: {}", database);
+			return new PersonaResponse(
+					dni, null, null, null, null, database, "ERROR: Invalid database");
+		} catch (Exception e) {
+			log.error("Unexpected error: {}", e.getMessage());
+			return new PersonaResponse(
+					dni, null, null, null, null, database, "ERROR: " + e.getMessage());
 		}
 	}
 
