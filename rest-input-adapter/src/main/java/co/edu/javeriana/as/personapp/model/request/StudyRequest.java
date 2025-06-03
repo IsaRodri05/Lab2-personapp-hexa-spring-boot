@@ -12,4 +12,5 @@ public class StudyRequest {
     private Integer professionId;
     private LocalDate graduationDate;
     private String universityName;
+    private String database;
 }

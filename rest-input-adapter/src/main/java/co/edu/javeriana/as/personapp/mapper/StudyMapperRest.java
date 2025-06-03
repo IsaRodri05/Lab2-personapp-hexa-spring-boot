@@ -46,14 +46,19 @@ public class StudyMapperRest {
         return s;
     }
 
-    /**
-     * Convierte de Study (dominio) a StudyResponse (DTO REST).
-     */
+
     public StudyResponse fromDomainToResponse(Study study) {
         if (study == null) return null;
+
+
+        String personIdent = String.valueOf(study.getPerson().getIdentification());
+        
+        String professionIdent = String.valueOf(study.getProfession().getIdentification());
+
+
         return new StudyResponse(
-            study.getPerson().getIdentification(),
-            study.getProfession().getIdentification(),
+            personIdent,
+            professionIdent,
             study.getGraduationDate(),
             study.getUniversityName()
         );
