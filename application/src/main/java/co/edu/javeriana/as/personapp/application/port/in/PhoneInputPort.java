@@ -25,11 +25,5 @@ public interface PhoneInputPort {
 
 	public Integer count();
 
-    public Person findOwner(String  number) throws NoExistException;
-
-    public Phone addPhoneToPerson(Integer personId, Phone phone) throws NoExistException;
-    
-    public Boolean removePhoneFromPerson(Integer personId, String phoneNumber) throws NoExistException;
-    
     public List<Phone> getPersonPhones(Integer personId) throws NoExistException;
 }

@@ -26,6 +26,7 @@ import co.edu.javeriana.as.personapp.mapper.PersonaMapperRest;
 import co.edu.javeriana.as.personapp.mapper.PhoneMapperRest;
 import co.edu.javeriana.as.personapp.model.request.EditPhoneRequest;
 import co.edu.javeriana.as.personapp.model.request.PhoneRequest;
+import co.edu.javeriana.as.personapp.model.response.PersonaResponse;
 import co.edu.javeriana.as.personapp.model.response.PhoneResponse;
 import co.edu.javeriana.as.personapp.model.response.Response;
 import lombok.extern.slf4j.Slf4j;
@@ -211,6 +212,66 @@ public class PhoneInputAdapterRest {
         } catch (Exception e) {
             log.error("Unexpected error: {}", e.getMessage());
             return new Response("ERROR", "Server error while deleting phone", LocalDateTime.now());
+        }
+    }
+
+    public PhoneResponse obtenerTelefono(String database, String number) {
+        try {
+            setPhoneOutputPortInjection(database);
+            Phone phone = phoneInputPort.findOne(number);
+
+            return new PhoneResponse(
+                    phone.getNumber(),
+                    phone.getCompany(),
+                    phone.getOwner() != null ? String.valueOf(phone.getOwner().getIdentification()) : null,
+                    database,
+                    "SUCCESS");
+        } catch (NoExistException e) {
+            log.error("Phone not found: {}", number);
+            return new PhoneResponse(
+                    number, null, null, database, "ERROR: " + e.getMessage());
+        } catch (InvalidOptionException e) {
+            log.error("Invalid database option: {}", database);
+            return new PhoneResponse(
+                    number, null, null, database, "ERROR: Invalid database");
+        } catch (Exception e) {
+            log.error("Unexpected error: {}", e.getMessage());
+            return new PhoneResponse(
+                    number, null, null, database, "ERROR: " + e.getMessage());
+        }
+    }
+
+    public List<PhoneResponse> obtenerTelefonosPersona(String database, String dni) {
+        try {
+            setPhoneOutputPortInjection(database);
+            int personId = Integer.parseInt(dni);
+            List<Phone> phones = personInputPort.getPhones(personId);
+
+            return phones.stream()
+                    .map(phone -> new PhoneResponse(
+                            phone.getNumber(),
+                            phone.getCompany(),
+                            String.valueOf(phone.getOwner().getIdentification()),
+                            database,
+                            "SUCCESS"))
+                    .collect(Collectors.toList());
+
+        } catch (NumberFormatException e) {
+            log.error("Invalid DNI format: {}", dni);
+            return Collections.singletonList(
+                    new PhoneResponse(null, null, dni, database, "ERROR: Invalid DNI format"));
+        } catch (NoExistException e) {
+            log.error("Person not found: {}", dni);
+            return Collections.singletonList(
+                    new PhoneResponse(null, null, dni, database, "ERROR: " + e.getMessage()));
+        } catch (InvalidOptionException e) {
+            log.error("Invalid database option: {}", database);
+            return Collections.singletonList(
+                    new PhoneResponse(null, null, null, database, "ERROR: Invalid database"));
+        } catch (Exception e) {
+            log.error("Unexpected error: {}", e.getMessage());
+            return Collections.singletonList(
+                    new PhoneResponse(null, null, null, database, "ERROR: " + e.getMessage()));
         }
     }
 

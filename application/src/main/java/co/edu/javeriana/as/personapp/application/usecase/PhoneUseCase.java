@@ -83,46 +83,6 @@ public class PhoneUseCase implements PhoneInputPort {
         return phonePersistence.find().size();
     }
 
-    @Override
-    public Person findOwner(String number) throws NoExistException {
-        Phone phone = phonePersistence.findById(number);
-        if (phone != null && phone.getOwner() != null) {
-            // Devolver una copia con solo la información básica
-            Person owner = new Person();
-            owner.setIdentification(phone.getOwner().getIdentification());
-            owner.setFirstName(phone.getOwner().getFirstName());
-            owner.setLastName(phone.getOwner().getLastName());
-            // No copiar teléfonos ni estudios
-            return owner;
-        }
-        throw new NoExistException("The phone with number " + number + " does not have an owner");
-    }
-
-    @Override
-    public Phone addPhoneToPerson(Integer personId, Phone phone) throws NoExistException {
-        Person person = personPersistence.findById(personId);
-        if (person != null) {
-            phone.setOwner(person);
-            return phonePersistence.save(phone);
-        }
-        throw new NoExistException("The person with id " + personId + " does not exist into db, cannot add phone");
-    }
-
-    @Override
-    public Boolean removePhoneFromPerson(Integer personId, String phoneNumber) throws NoExistException {
-        Person person = personPersistence.findById(personId);
-        if (person != null) {
-            Phone phone = phonePersistence.findById(phoneNumber);
-            if (phone != null && phone.getOwner() != null && phone.getOwner().getIdentification().equals(personId)) {
-                phone.setOwner(null);
-                phonePersistence.save(phone);
-                return true;
-            }
-            throw new NoExistException(
-                    "The phone with number " + phoneNumber + " does not belong to the person with id " + personId);
-        }
-        throw new NoExistException("The person with id " + personId + " does not exist into db, cannot remove phone");
-    }
 
     @Override
     public List<Phone> getPersonPhones(Integer personId) throws NoExistException {

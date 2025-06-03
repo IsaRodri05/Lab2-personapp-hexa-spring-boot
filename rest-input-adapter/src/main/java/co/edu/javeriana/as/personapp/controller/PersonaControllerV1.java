@@ -23,6 +23,7 @@ import co.edu.javeriana.as.personapp.common.exceptions.InvalidOptionException;
 import co.edu.javeriana.as.personapp.model.request.EditPersonRequest;
 import co.edu.javeriana.as.personapp.model.request.PersonaRequest;
 import co.edu.javeriana.as.personapp.model.response.PersonaResponse;
+import co.edu.javeriana.as.personapp.model.response.PhoneResponse;
 import co.edu.javeriana.as.personapp.model.response.Response;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,6 +40,24 @@ public class PersonaControllerV1 {
 	public List<PersonaResponse> personas(@PathVariable String database) {
 		log.info("Into personas REST API");
 		return personaInputAdapterRest.historial(database.toUpperCase());
+	}
+
+	@ResponseBody
+	@GetMapping(path = "/{database}/{dni}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public PersonaResponse obtenerPersona(
+			@PathVariable String database,
+			@PathVariable String dni) {
+		log.info("Into obtenerPersona REST API");
+		return personaInputAdapterRest.obtenerPersona(database.toUpperCase(), dni);
+	}
+
+	@ResponseBody
+	@GetMapping(path = "/{database}/{dni}/telefonos", produces = MediaType.APPLICATION_JSON_VALUE)
+	public List<PhoneResponse> obtenerTelefonosPersona(
+			@PathVariable String database,
+			@PathVariable String dni) {
+		log.info("Into obtenerTelefonosPersona REST API");
+		return personaInputAdapterRest.obtenerTelefonosPersona(database.toUpperCase(), dni);
 	}
 
 	@ResponseBody
@@ -61,4 +80,6 @@ public class PersonaControllerV1 {
 		log.info("Into eliminarPersona REST API");
 		return personaInputAdapterRest.eliminarPersona(database.toUpperCase(), dni);
 	}
+
+
 }
