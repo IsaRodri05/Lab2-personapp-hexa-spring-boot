@@ -2,6 +2,7 @@ package co.edu.javeriana.as.personapp.adapter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,10 +17,12 @@ import co.edu.javeriana.as.personapp.common.exceptions.InvalidOptionException;
 import co.edu.javeriana.as.personapp.common.exceptions.NoExistException;
 import co.edu.javeriana.as.personapp.common.setup.DatabaseOption;
 import co.edu.javeriana.as.personapp.domain.Person;
+import co.edu.javeriana.as.personapp.domain.Phone;
 import co.edu.javeriana.as.personapp.mapper.PersonaMapperRest;
 import co.edu.javeriana.as.personapp.model.request.EditPersonRequest;
 import co.edu.javeriana.as.personapp.model.request.PersonaRequest;
 import co.edu.javeriana.as.personapp.model.response.PersonaResponse;
+import co.edu.javeriana.as.personapp.model.response.PhoneResponse;
 import co.edu.javeriana.as.personapp.model.response.Response;
 import lombok.extern.slf4j.Slf4j;
 
@@ -218,6 +221,59 @@ public class PersonaInputAdapterRest {
 		} catch (Exception e) {
 			log.error("Unexpected error: {}", e.getMessage());
 			return new Response("ERROR", "Server error while deleting person", LocalDateTime.now());
+		}
+	}
+
+	public List<PhoneResponse> obtenerTelefonosPersona(String database, String dni) {
+		try {
+			// Validar base de datos
+			if (!database.equalsIgnoreCase(DatabaseOption.MARIA.toString()) &&
+					!database.equalsIgnoreCase(DatabaseOption.MONGO.toString())) {
+				throw new InvalidOptionException("Invalid database option: " + database);
+			}
+
+			// Configurar persistencia
+			personInputPort = database.equalsIgnoreCase(DatabaseOption.MARIA.toString())
+					? new PersonUseCase(personOutputPortMaria)
+					: new PersonUseCase(personOutputPortMongo);
+
+			// Convertir y validar DNI
+			int personId;
+			try {
+				personId = Integer.parseInt(dni);
+			} catch (NumberFormatException e) {
+				return Collections.singletonList(
+						new PhoneResponse(null, null, dni, database, "ERROR: DNI must be a number"));
+			}
+
+			// Obtener teléfonos
+			List<Phone> phones = personInputPort.getPhones(personId);
+
+			// Mapear a respuesta
+			return phones.stream()
+					.map(phone -> {
+						String ownerId = phone.getOwner() != null ? String.valueOf(phone.getOwner().getIdentification())
+								: null;
+
+						return new PhoneResponse(
+								phone.getNumber(),
+								phone.getCompany(),
+								ownerId,
+								database,
+								"SUCCESS");
+					})
+					.collect(Collectors.toList());
+
+		} catch (NoExistException e) {
+			return Collections.singletonList(
+					new PhoneResponse(null, null, dni, database, "ERROR: " + e.getMessage()));
+		} catch (InvalidOptionException e) {
+			return Collections.singletonList(
+					new PhoneResponse(null, null, null, database, "ERROR: Invalid database"));
+		} catch (Exception e) {
+			log.error("Error getting phones: {}", e.getMessage());
+			return Collections.singletonList(
+					new PhoneResponse(null, null, dni, database, "ERROR: " + e.getMessage()));
 		}
 	}
 

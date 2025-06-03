@@ -23,6 +23,7 @@ import co.edu.javeriana.as.personapp.common.exceptions.InvalidOptionException;
 import co.edu.javeriana.as.personapp.model.request.EditPersonRequest;
 import co.edu.javeriana.as.personapp.model.request.PersonaRequest;
 import co.edu.javeriana.as.personapp.model.response.PersonaResponse;
+import co.edu.javeriana.as.personapp.model.response.PhoneResponse;
 import co.edu.javeriana.as.personapp.model.response.Response;
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,6 +52,15 @@ public class PersonaControllerV1 {
 	}
 
 	@ResponseBody
+	@GetMapping(path = "/{database}/{dni}/telefonos", produces = MediaType.APPLICATION_JSON_VALUE)
+	public List<PhoneResponse> obtenerTelefonosPersona(
+			@PathVariable String database,
+			@PathVariable String dni) {
+		log.info("Into obtenerTelefonosPersona REST API");
+		return personaInputAdapterRest.obtenerTelefonosPersona(database.toUpperCase(), dni);
+	}
+
+	@ResponseBody
 	@PostMapping(path = "", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public PersonaResponse crearPersona(@RequestBody PersonaRequest request) {
 		log.info("esta en el metodo crearTarea en el controller del api");
@@ -70,4 +80,6 @@ public class PersonaControllerV1 {
 		log.info("Into eliminarPersona REST API");
 		return personaInputAdapterRest.eliminarPersona(database.toUpperCase(), dni);
 	}
+
+
 }
