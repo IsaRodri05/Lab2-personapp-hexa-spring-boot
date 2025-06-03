@@ -7,7 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import co.edu.javeriana.as.personapp.terminal.adapter.PersonaInputAdapterCli;
+
 import co.edu.javeriana.as.personapp.terminal.adapter.PhoneInputAdapterCli;
+import co.edu.javeriana.as.personapp.terminal.adapter.ProfesionInputAdapterCli;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -68,25 +71,23 @@ public class MenuPrincipal {
         keyboard.close();
     }
 
-    private void mostrarMenu() {
-        System.out.println("\n----------------------");
-        System.out.println("MENÚ PRINCIPAL");
-        System.out.println("----------------------");
-        System.out.println(MODULO_PERSONA + " - Módulo de Personas");
-        System.out.println(MODULO_PROFESION + " - Módulo de Profesiones");
-        System.out.println(MODULO_TELEFONO + " - Módulo de Teléfonos");
-        System.out.println(MODULO_ESTUDIO + " - Módulo de Estudios");
-        System.out.println(SALIR + " - Salir");
-    }
+	private void mostrarMenu() {
+		System.out.println("----------------------");
+		System.out.println(MODULO_PERSONA + " para trabajar con el Modulo de Personas");
+		System.out.println(MODULO_PROFESION + " para trabajar con el Modulo de Profesiones");
+		System.out.println(MODULO_TELEFONO + " para trabajar con el Modulo de Telefonos");
+		System.out.println(MODULO_ESTUDIO + " para trabajar con el Modulo de Estudios");
+		System.out.println(SALIR + " para Salir");
+	}
 
-    private int leerOpcion() {
-        try {
-            System.out.print("Ingrese una opción: ");
-            return keyboard.nextInt();
-        } catch (InputMismatchException e) {
-            log.warn("Solo se permiten números.");
-            keyboard.nextLine(); // Limpiar buffer
-            return leerOpcion();
-        }
-    }
+	private int leerOpcion() {
+		try {
+			System.out.print("Ingrese una opción: ");
+			return keyboard.nextInt();
+		} catch (InputMismatchException e) {
+			log.warn("Solo se permiten números.");
+			return leerOpcion();
+		}
+	}
+	
 }
